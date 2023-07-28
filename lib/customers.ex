@@ -19,8 +19,8 @@ defmodule Conekta.Customers do
   alias Conekta.CustomerShippingContactsResponse
   alias Conekta.CustomersResponse
   alias Conekta.CustomerSubscriptionResponse
-  alias Conekta.CustomerUpdateShippingContactResponse
   alias Conekta.CustomerUpdatePaymentSourceResponse
+  alias Conekta.CustomerUpdateShippingContactResponse
   alias Conekta.Handler
 
   @doc """
@@ -164,7 +164,7 @@ defmodule Conekta.Customers do
 
   def update_payment_source(client_id, payment_source_id, payment_source) do
     case Client.put_request(
-           "customers/" <> client_id <> "/payment_sources/" <> payment_source_id, 
+           "customers/" <> client_id <> "/payment_sources/" <> payment_source_id,
            payment_source
          ) do
       {:ok, content} ->
