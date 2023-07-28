@@ -1,49 +1,92 @@
-# Conekta Library
+# Biblioteca Conekta
 
-Wrapper to connect with https://api.conekta.io.
+Biblioteca de Elixir para comunicarse con el API de Conekta (<https://api.conekta.io>)
 
-[conekta-elixir documentation](https://hexdocs.pm/conekta/api-reference.html)
+## Donde empezar
 
-## Setup
+### Instalación
 
-### Installation
-
-Add Conekta to your `mix.exs` dependencies:
+Agrega la biblioteca al archivo `mix.exs` como una dependencia más:
 
 ```elixir
 #mix.exs
 defp deps do
   [
-    {:conekta, "~> 1.0"}
+    {:conekta, github: romikya/conekta}
   ]
 end
 ```
 
-### Configuration
-Add your keys in your `config.exs` file
+## Configuración
+
+Agrega las llaves a tu archivo `config/config.exs`
 
 ```elixir
-# config.exs
+# config/config.exs
 config :conekta,
   public_key: "YOUR-PUBLIC-KEY",
   private_key: "YOUR-PRIVATE-KEY"
-
 ```
 
-## Customers
+Para facilitar la asignación de las variables de entorno en la maquina local, se recomienda el uso de [direnv](https://direnv.net/).
 
-### Get
-Get all current customers
-```elixir
-#Get the last
-Conekta.Customers.customers()
+### Configurar el entorno
+
+Copiar archivo .env.dev como .envrc
+
+```console
+cp .env.dev .envrc
 ```
 
-### Create
-Create a customer by passing a `%Conekta.Customer{}` struct
+Verificar que el archivo tiene las variables asignadas:
+
+```console
+$ cat .envrc
+export CKTA_PUBLIC_KEY="PUBLIC-KEY-VALUE"
+export CKTA_PRIVATE_KEY="PRIVATE-KEY-VALUE"
+```
+
+Dar permiso para leer el archivo a direnv:
+
+```console
+$ direnv allow .envrc
+direnv: loading ~/conekta/.envrc
+direnv: export +CKTA_PRIVATE_KEY +CKTA_PUBLIC_KEY -PS2
+```
+
+Recuerda que en tu proyecto debes leer las variables de entorno en tu archivo de configuración:
 
 ```elixir
-#Create a new customer map
+# config/config.exs
+config :conekta,
+  public_key: System.get_env("CKTA_PUBLIC_KEY"),
+  private_key: System.get_env("CKTA_PRIVATE_KEY")
+```
+
+Si estás usando Phoenix, lo recomendable sería que lo pusieras en el archivo `config/runtime.exs`
+
+```elixir
+# config/runtime.exs
+config :conekta,
+  public_key: System.get_env("CKTA_PUBLIC_KEY"),
+  private_key: System.get_env("CKTA_PRIVATE_KEY")
+```
+
+## Clientes (Customers)
+
+### Obtener Clientes
+
+Obtener los clientes actuales
+
+```elixir
+  Conekta.Customers.customers()
+```
+
+### Crear un cliente
+
+Crear un cliente a partir de una estructura `%Conekta.Customer{}`
+
+```elixir
 new_customer = %Customer{
   name: "Fake Name",
   email: "fake@email.com",
@@ -54,36 +97,37 @@ new_customer = %Customer{
   }]
 }
 
-#Create a new customer
 Conekta.Customers.create(new_customer)
 
 ```
 
-### Find
-Find a customer by passing the unique ID
+### Encontrar un cliente
+
+Encontrar un cliente pasando el identificador
+
 ```elixir
 Conekta.Customers.find(id)
 ```
 
-### Delete
-Delete a customer by passing the unique ID
+### Borrar un cliente
+
+Borrar un cliente pasando el identificador
+
 ```elixir
 Conekta.Customers.delete(id)
 ```
 
+## Pedidos (Orders)
 
-## Orders
-
-### Get
+### Obtener pedidos
 
 ```elixir
 Conekta.Orders.orders()
 ```
 
-### Create
+### Crear un pedido
 
 ```elixir
-#Create a new order map
 new_order = %Order{currency: "MXN",
 customer_info: %{
     customer_id: content.id
@@ -97,37 +141,36 @@ customer_info: %{
     }
 }]}
 
-#Create an order
 response = Conekta.Orders.create(new_order)
 ```
 
-## Payment Links
+## Enlaces de pagos
 
-### Create
+### Crear un enlace
 
 ```elixir
 iex> Conekta.Checkouts.create_payment_link(%PaymentLink{
-  name: "a payment link", 
-  type: "PaymentLink", 
-  expires_at: 1637714928, 
-  recurrent: false, 
-  allowed_payment_methods: ["cash", "card", "bank_transfer"], 
-  monthly_installments_enabled: false, 
+  name: "a payment link",
+  type: "PaymentLink",
+  expires_at: 1637714928,
+  recurrent: false,
+  allowed_payment_methods: ["cash", "card", "bank_transfer"],
+  monthly_installments_enabled: false,
   order_template: %{
-    currency: "MXN", 
+    currency: "MXN",
     customer_info: %{
-      name: "test paymentlink", 
-      email: "pedro+test@ventup.com.mx", 
+      name: "test paymentlink",
+      email: "pedro+test@ventup.com.mx",
       phone: "8115898281"
-    }, 
+    },
     line_items: [
       %{
-        name: "ventup month", 
-        unit_price: 10000, 
+        name: "ventup month",
+        unit_price: 10000,
         quantity: 1
       }
     ]
-  }, 
+  },
   needs_shipping_contact: false
 })
 
@@ -160,7 +203,7 @@ iex> {:ok,
 
 ## WebHooks
 
-Helper function for webhook handling. [check possible events](https://developers.conekta.com/resources/webhooks)
+Función auxiliar para el manejo de webhooks. [Posibles eventos](https://developers.conekta.com/resources/webhooks)
 
 ```elixir
 case Conekta.WebHook.received(params) do
@@ -176,20 +219,47 @@ case Conekta.WebHook.received(params) do
 end
 ```
 
-## Test
-If you want to add something new, make sure all the tests pass before making a PR
+## Pruebas Unitarias
+
+Como siempre, las pruebas unitarias pueden ejecutarse con:
+
 ```elixir
 mix test
 ```
 
-### Send pull request
-I would love to check new contributions to this repository.
-Fork from **dev** and do a PR into **dev** again.  
+## Cómo contribuir
 
-### License
+Clona el repositorio usando git con ssh:
 
-Developed by [Jorge Chavez](https://twitter.com/JorgeChavz). 
+```
+$ git clone git@github.com:romikya/conekta.git
+```
 
-Available with [MIT License](https://github.com/echavezNS/conekta-elixir/blob/master/LICENSE).
+## Pre-requisitos
 
-Maintainer of this fork: [Ventup](https://github.com/Ventup-IT)
+Para construir el proyecto, se utilizan las siguientes herramientas:
+
+### [asdf](https://asdf-vm.com/)
+
+* Puedes ver [como funciona aquí](https://asdf-vm.com/guide/introduction.html#how-it-works).
+* Y puedes ver [como instalarlo aquí](https://asdf-vm.com/guide/getting-started.html#_1-install-dependencies)
+
+Para instalar Erlang y Elixir deben usarse los plugins de asdf:
+
+```shell
+$ asdf plugin-add erlang https://github.com/asdf-vm/asdf-erlang.git
+$ asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
+$ asdf install
+```
+
+### Enviar una solicitud de cambios (Pull Request)
+
+Si deseas enviar algún cambio, debes basarte en la rama de `develop`, de esta forma se pueden enviar tus cambios en la siguiente liberación de una nueva versión sin perder los cambios en los que esté trabajando el equipo.
+
+### Licencia
+
+Desarrollada por [Jorge Chavez](https://twitter.com/JorgeChavz).
+Versión basada en el fork de: [Ventup](https://github.com/Ventup-IT)
+Actualizada y mantenida desde julio de 2023 por el equipo de [RomikyaLabs](https://github.com/romikya)
+
+Disponibles con la [licencia MIT](https://github.com/echavezNS/conekta-elixir/blob/master/LICENSE).
